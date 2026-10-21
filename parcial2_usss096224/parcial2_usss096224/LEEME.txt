@@ -1,0 +1,5 @@
+Parcial II - Programacion Computacional III - usss096224
+1. XAMPP: iniciar Apache y MySQL (MariaDB). En phpMyAdmin importar db.sql
+2. pip install mysql-connector-python
+3. python server.py  -> abrir http://localhost:3000
+Login inicial: admin / admin123

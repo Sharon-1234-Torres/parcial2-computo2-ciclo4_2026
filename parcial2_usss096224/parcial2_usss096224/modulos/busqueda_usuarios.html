@@ -1,0 +1,72 @@
+<form id="frmConsultarUsuario">
+    <div class="card text-bg-dark mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Busqueda de Usuarios
+                <div class="ms-auto">
+                    <button data-form="busqueda_usuarios" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th colspan="5">
+                                <input type="search" placeholder="buscar por usuario, nombre o telefono"
+                                    id="txtBuscarUsuario" class="form-control">
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>Usuario</th><th>Nombre</th><th>Direccion</th><th>Telefono</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblUsuarios"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    var listaUsuarios = [];
+    txtBuscarUsuario.addEventListener('keyup', e => obtenerUsuarios(txtBuscarUsuario.value));
+    frmConsultarUsuario.addEventListener('submit', e => e.preventDefault());
+    obtenerUsuarios();
+
+    async function obtenerUsuarios(buscar = '') {
+        let response = await fetch(`/usuarios?buscar=${encodeURIComponent(buscar)}`);
+        listaUsuarios = await response.json();
+        let filas = '';
+        listaUsuarios.forEach((u, i) => {
+            filas += `
+                <tr>
+                    <td>${escapar(u.usuario)}</td>
+                    <td>${escapar(u.nombre)}</td>
+                    <td>${escapar(u.direccion)}</td>
+                    <td>${escapar(u.telefono)}</td>
+                    <td class="text-nowrap">
+                        <button type="button" class="btn btn-sm btn-info" onclick="editarUsuario(${i}, event)">EDITAR</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="eliminarUsuario(${i}, event)">DEL</button>
+                    </td>
+                </tr>`;
+        });
+        tblUsuarios.innerHTML = filas || '<tr><td colspan="5" class="text-center">Sin resultados</td></tr>';
+    }
+    // El formulario de usuarios se abre (si no lo esta) y se carga con los datos
+    function editarUsuario(i, event) {
+        cargarForm('usuarios', () => modificarUsuario(listaUsuarios[i], event));
+    }
+    async function eliminarUsuario(i, event) {
+        event.preventDefault();
+        let u = listaUsuarios[i];
+        if (!confirm(`¿Seguro de eliminar al usuario: ${u.nombre}?`)) return;
+        let response = await fetch('/usuario', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({modulo: 'usuario', accion: 'eliminar', idUsuario: u.idUsuario})
+        }), respuesta = await response.json();
+        if (respuesta.msg != 'ok') return alert('Error: ' + respuesta.msg);
+        obtenerUsuarios(txtBuscarUsuario.value);
+    }
+</script>

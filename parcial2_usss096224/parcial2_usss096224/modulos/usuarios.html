@@ -1,0 +1,111 @@
+<form id="frmUsuario">
+    <div class="card text-bg-dark mb-3" style="min-width: 600px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Admin de Usuarios
+                <div class="ms-auto">
+                    <button data-form="usuarios" type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row p-1">
+                <div class="col-12 col-md-6">
+                    <input pattern="^[A-Za-z0-9_.]{3,35}$" required maxlength="35" placeholder="Usuario"
+                        id="txtUsuarioForm" class="form-control" type="text" autocomplete="off">
+                </div>
+                <div class="col-12 col-md-6">
+                    <input maxlength="35" placeholder="Clave" id="txtClaveForm" class="form-control"
+                        type="password" autocomplete="new-password">
+                    <small class="text-secondary d-none" id="hintClave">Deje vacio para conservar la clave actual</small>
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-12">
+                    <input pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ ]{3,85}$" required maxlength="85" placeholder="Nombre"
+                        id="txtNombreUsuario" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-12">
+                    <input maxlength="100" placeholder="Direccion" id="txtDireccionUsuario" class="form-control" type="text">
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-12 col-md-4">
+                    <input pattern="^[0-9]{4}-[0-9]{4}$" required maxlength="9" placeholder="Telefono 0000-0000"
+                        id="txtTelefonoUsuario" class="form-control" type="text">
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-center">
+            <input type="submit" value="Guardar" class="btn btn-primary" id="btnGuardarUsuario">
+            <input type="button" value="Buscar" class="btn btn-secondary" id="btnBuscarUsuario">
+            <input type="reset" value="Limpiar" class="btn btn-warning">
+        </div>
+    </div>
+</form>
+<script>
+    var accion = 'nuevo', idUsuario = '';
+
+    frmUsuario.addEventListener('submit', e => {
+        e.preventDefault();
+        guardarUsuario();
+    });
+    frmUsuario.addEventListener('reset', e => {
+        e.preventDefault();
+        limpiarFormulario();
+    });
+    btnBuscarUsuario.addEventListener('click', e => {
+        e.preventDefault();
+        cargarForm('busqueda_usuarios');
+    });
+
+    // Se llama desde la tabla de busqueda al hacer clic en EDITAR
+    function modificarUsuario(data, event) {
+        event.preventDefault();
+        idUsuario = data.idUsuario;
+        accion = 'modificar';
+        txtUsuarioForm.value = data.usuario;
+        txtClaveForm.value = '';
+        txtClaveForm.placeholder = 'Nueva clave (opcional)';
+        hintClave.classList.remove('d-none');
+        txtNombreUsuario.value = data.nombre;
+        txtDireccionUsuario.value = data.direccion;
+        txtTelefonoUsuario.value = data.telefono;
+        btnGuardarUsuario.value = 'Actualizar';
+    }
+
+    async function guardarUsuario() {
+        let datos = {
+            modulo: 'usuario',
+            usuario: txtUsuarioForm.value,
+            clave: txtClaveForm.value,
+            nombre: txtNombreUsuario.value,
+            direccion: txtDireccionUsuario.value,
+            telefono: txtTelefonoUsuario.value,
+            accion,
+            idUsuario
+        };
+        let response = await fetch('/usuario', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(datos)
+        }), respuesta = await response.json();
+        if (respuesta.msg != 'ok') {
+            alert('Error: ' + respuesta.msg);
+            return false;
+        }
+        if (typeof obtenerUsuarios === 'function') obtenerUsuarios();
+        limpiarFormulario();
+        return true;
+    }
+    function limpiarFormulario() {
+        accion = 'nuevo';
+        idUsuario = '';
+        frmUsuario.querySelectorAll('input:not([type=submit]):not([type=button]):not([type=reset])').forEach(i => i.value = '');
+        txtClaveForm.placeholder = 'Clave';
+        hintClave.classList.add('d-none');
+        btnGuardarUsuario.value = 'Guardar';
+    }
+</script>
